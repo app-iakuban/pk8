@@ -575,11 +575,18 @@ gtag('config','AW-17650633966');
   });
 })();
 
-/* ─── Код заявки для Telegram-CTA (сквозная атрибуция лидов) ───
-   Визиту присваивается код «Заявка №XXXXX», он дописывается в префилл всех
-   ссылок t.me/iakuban_team. По клику код вместе с UTM исходного захода уходит
-   в access-лог сервера (HEAD-запрос) и в GA4 (событие tg_lead_code).
-   Разбор и схема: Marketing/operations/2026-08-23_lead_attribution_szilviya.md */
+/* ─── Код визита для Telegram-CTA (сквозная атрибуция лидов) ───
+   Визиту присваивается код XXXXX, он дописывается в префилл всех ссылок
+   t.me/iakuban_team. По клику код вместе с UTM исходного захода уходит в
+   access-лог сервера (HEAD-запрос) и в GA4 (событие tg_lead_code).
+   Разбор и схема: Marketing/operations/2026-08-23_lead_attribution_szilviya.md
+
+   ⚠️ Подпись кода зависит от воронки. На страницах «Профессии коуч» префилл
+   несёт «Мой код: <КОД ИСТОЧНИКА>» и отвечает автоответчик (ветка
+   pk_onboarding): слово «Заявка» — его стоп-слово, при нём бот молчит и лид
+   уходит менеджеру. Таким ссылкам дописываем «Визит №», остальным (Level 1/2,
+   где как раз нужен менеджер) — привычную менеджерам «Заявку №».
+   Схема воронки ПК: Marketing/scenarios/pk_funnel_entry.md */
 (function(){
   var TG = 'https://t.me/iakuban_team';
 
@@ -606,8 +613,9 @@ gtag('config','AW-17650633966');
       try{
         var u = new URL(links[i].href);
         var t = u.searchParams.get('text');
-        if(!t || t.indexOf('Заявка №') !== -1) continue;
-        links[i].href = u.origin + u.pathname + '?text=' + encodeURIComponent(t + '\n\nЗаявка №' + code);
+        if(!t || t.indexOf('Заявка №') !== -1 || t.indexOf('Визит №') !== -1) continue;
+        var label = t.indexOf('Мой код:') !== -1 ? 'Визит №' : 'Заявка №';
+        links[i].href = u.origin + u.pathname + '?text=' + encodeURIComponent(t + '\n\n' + label + code);
       }catch(e){}
     }
   }
@@ -625,6 +633,11 @@ gtag('config','AW-17650633966');
   }, true);
 })();
 </script>
+<!-- ИИ-помощник академии. Файл отдаётся Nuxt-слоем с корня домена, поэтому один
+     и тот же виджет работает и здесь, и на страницах платформы. Подключение
+     живёт в шапке, потому что она уже разъезжается по всем лендингам одной
+     командой и другого общего блока у статики нет. -->
+<script src="https://iakuban.com/chat-widget.js?v=20260904-2" defer></script>
 <!-- IH-HEADER:END -->
 
 <main>
